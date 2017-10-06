@@ -24,6 +24,10 @@ private:
     {
         return (x > 0) ? 1 : -1;
     }
+    double abs (double x)
+    {
+        return (x > 0) ? x : -x;
+    }
     unsigned int up_index (unsigned int i, unsigned int j)
     {
         //U-matrixes stored as a linear array
@@ -84,13 +88,13 @@ index Jacobi::Find_max ()
     index result;
     result.row = 0;
     double cur_element;
-    cur_element = (dimension == 1) ? matrix1[0] : matrix1[1];
+    cur_element = (dimension == 1) ? abs(matrix1[0]) : abs(matrix1[1]);
     result.column = (dimension > 1) ? 1 : 0;
     for (unsigned int i = 0; i < dimension; i++)
         for (unsigned int j = 0; j < dimension; j++)
-            if (i != j && matrix1 [up_index (i, j)] > cur_element)
+            if (i != j && abs (matrix1 [up_index (i, j)]) > cur_element)
             {
-                cur_element = matrix1 [up_index (i, j)];
+                cur_element = abs (matrix1 [up_index (i, j)]);
                 //std::cout<<cur_element<<std::endl;
                 result.row = i;
                 result.column = j;
