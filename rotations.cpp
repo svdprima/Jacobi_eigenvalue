@@ -4,13 +4,14 @@
 
 void Eigen (std::vector <double> &mtrx, unsigned int n, Jacobi &rot)
 {
-    //a proper stop condition should be added
-    unsigned int steps = 9;
-    for (unsigned int i = 0; i < steps; i++)
-    {
-        rot.Rotate ();    
+	while (1)
+	{
+		rot.Rotate ();    
         rot.Print ();
-    }
+       // std::cout<<"eq() "<<rot.eq()<<std::endl;
+        if (rot.eq() == 1)
+			break;
+	}
 }
 
 int main ()

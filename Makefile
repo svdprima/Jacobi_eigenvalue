@@ -1,2 +1,4 @@
 all:
-	g++ rotations.cpp -g -o test
+	g++ rotations.cpp -o test
+tst:
+	g++ huge_mtrx.cpp -o huge_mtrx

@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cstdlib>
 
+
+
+
 //used for storing index of a matrix element which is to be killed at every iteration
 struct index
 {
@@ -19,6 +22,8 @@ private:
     unsigned int dimension;
     std::vector <double> matrix1;
     std::vector <double> matrix2;
+    std::vector <double> eig_pre;
+    std::vector <double> eig_post;
     double mu, alpha, beta;
     double signum (double x)
     {
@@ -44,11 +49,12 @@ private:
         return result; 
     }
     index Find_max ();
-    //Find_optimum func should be added here for better performance
+    index Find_optimum ();//Find_optimum func should be added here for better performance
 public:
     Jacobi (unsigned int dim, std::vector <double> &mtrx);
     void Rotate ();
     void Print ();
+    int eq ();
 };
 
 Jacobi::Jacobi (unsigned int dim, std::vector <double> &mtrx)
@@ -71,6 +77,8 @@ Jacobi::Jacobi (unsigned int dim, std::vector <double> &mtrx)
     // The elements are stored in a linear array. 
     matrix1 = std::vector <double> (dimension * (dimension + 1) / 2);
     matrix2 = std::vector <double> (dimension * dimension);
+    eig_pre = std::vector <double> (dimension);
+    eig_post = std::vector <double> (dimension);
     unsigned int k = 0;
     for (unsigned int i = 0; i < dimension; i ++)
         for (unsigned int j = i; j < dimension; j++)
@@ -99,13 +107,58 @@ index Jacobi::Find_max ()
                 result.row = i;
                 result.column = j;
             }
-    std::cout <<"max element is a "<<result.row<<" "<<result.column<<std::endl;
+    //std::cout <<"max element is a "<<result.row<<" "<<result.column<<std::endl;
     return result;
 }
 
+index Jacobi::Find_optimum ()
+{
+	index result;
+	result.row = 0;
+	double cur_element;
+	unsigned int max_row = 0;
+	double max_row_sum = 0;
+	double cur_row_sum;
+	cur_element = (dimension == 1) ? abs(matrix1[0]) : abs(matrix1[1]);
+	result.column = (dimension > 1) ? 1 : 0;
+	for (unsigned int i = 0; i < dimension; i++)
+	{
+		cur_row_sum = 0;
+        for (unsigned int j = 0; j < dimension; j++)
+		{
+			if (i != j)
+				cur_row_sum += abs (matrix1 [up_index (i, j)]);
+		}
+		if (cur_row_sum > max_row_sum)
+		{
+			max_row_sum = cur_row_sum;
+			max_row = i;
+		}
+	}	
+	result.row = max_row;
+	for (unsigned int j = 0; j < dimension; j++)
+	{
+		if (max_row != j && abs (matrix1 [up_index (max_row, j)]) >= cur_element)
+		{
+			cur_element = abs (matrix1 [up_index (max_row, j)]);
+			result.column = j;
+		}
+	}
+	//std::cout <<"opt element is "<<result.row+1<<" "<<result.column+1<<std::endl;
+    return result;
+}
+
+
 void Jacobi::Rotate () // row == k, column == l
 {
-    index kl = Find_max ();
+	for (unsigned int i = 0; i < dimension; i++)
+    {
+		eig_pre [i] = matrix1 [up_index(i, i)];
+		//std::cout<<"eig_pre "<<eig_pre[i]<<std::endl;
+	}
+	
+    //index kl = Find_max ();
+    index kl = Find_optimum ();
     mu = 2 * matrix1 [up_index (kl.row, kl.column)] / (matrix1 [up_index (kl.row, kl.row)] - matrix1 [up_index (kl.column, kl.column)]);
     alpha = sqrt ((1 + 1 / sqrt (1 + mu * mu)) / 2); 
     beta = signum (mu) * sqrt ((1 - 1 / sqrt (1 + mu * mu)) / 2);
@@ -132,6 +185,12 @@ void Jacobi::Rotate () // row == k, column == l
             if (j != kl.row && j!= kl.column && j <= i)
                 matrix1[up_index (j, i)] = matrix2[j * dimension + i];
     }
+    for (unsigned int i = 0; i < dimension; i++)
+    {
+		eig_post [i] = matrix1 [up_index(i, i)];
+		//std::cout<<"eig_post "<<eig_post[i]<<std::endl;
+	}
+	
 }
 
 void Jacobi::Print ()
@@ -145,5 +204,26 @@ void Jacobi::Print ()
     }
     std::cout<<std::endl;
 }
+
+int Jacobi::eq()
+{
+	unsigned int g = 0;
+	for (unsigned int i = 0; i < dimension; i++)
+	{
+		if (eig_pre [i] == eig_post [i])
+			g++;
+	}
+	if (g == dimension)
+	{
+		for (unsigned int i = 0; i < dimension; i++)
+		{
+			std::cout<<"eig_post"<<eig_post[i]<<std::endl;
+		}
+		return 1;
+	}
+	else
+		return 0;
+}
+		
 
 #endif
